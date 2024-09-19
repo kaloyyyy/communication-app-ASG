@@ -1,0 +1,7 @@
+{
+  "message": "No authentication provided",
+  "code": 4010,
+  "user_error": true,
+  "http_status_code": -1,
+  "params": {}
+}

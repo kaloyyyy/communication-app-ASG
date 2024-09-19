@@ -1,0 +1,10 @@
+GET https://mcs.us1.twilio.com/v1/Services/ISe4fdc3e963dd4e3d937c5a7311ada2f4/Media/ME6a62dcbab9d854674b306b10b1927c52
+Accept: application/json
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.2.0.2
+Accept-Encoding: br, deflate, gzip, x-gzip
+content-length: 0
+
+<> 2024-09-19T210459.401.json
+
+###
+
