@@ -1,9 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import {useEffect, useState} from 'react';
+import {useSession} from 'next-auth/react';
 
 export default function Chat() {
-   const { data: session } = useSession();
+   const {data: session} = useSession();
    const [receiver, setReceiver] = useState('');
    const [message, setMessage] = useState('');
    const [messages, setMessages] = useState([]);
@@ -14,7 +14,7 @@ export default function Chat() {
    const createConversation = async () => {
       const res = await fetch('/api/chat/create', {
          method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
+         headers: {'Content-Type': 'application/json'},
          body: JSON.stringify({
             sender: session?.user?.name,
             receiver,
@@ -35,16 +35,19 @@ export default function Chat() {
       const res = await fetch(`/api/chat/history?conversationSid=${conversationSid}`);
       const data = await res.json();
       setMessages(data.messages);
+      console.log(data.messages)
    };
 
    // Send a message with or without a file
    const sendMessage = async (e: React.FormEvent) => {
       e.preventDefault();
-      console.log("file",file)
+      console.log("file", file)
       if (file) {
          const formData = new FormData();
          formData.append('file', file);
-         formData.append('convoSid',conversationSid)
+         console.log("upload to public")
+
+         formData.append('convoSid', conversationSid)
          const uploadRes = await fetch('/api/upload', {
             method: 'POST',
             body: formData,
@@ -56,11 +59,10 @@ export default function Chat() {
             const fileUrl = uploadData.url;
             const mediaSid = uploadData.mediaSid;
             const media = uploadData
-            console.log("upload okay now we send: ", fileUrl, media)
             // Now send the message with the uploaded file URL
             const res = await fetch('/api/chat/send', {
                method: 'POST',
-               headers: { 'Content-Type': 'application/json' },
+               headers: {'Content-Type': 'application/json'},
                body: JSON.stringify({
                   conversationSid,
                   sender: session?.user?.name,
@@ -70,12 +72,30 @@ export default function Chat() {
                   media// Pass the file URL to Twilio Conversations API
                }),
             });
+            const sentMess = await res.json()
+            console.log("artartasasrasrtasrtasrtartarstartarstsr res",sentMess.chatSid)
+            formData.append("chatSid",sentMess.chatSid)
+            try {
+               const resP = await fetch('/api/publicUpload', {
+                  method: 'POST',
+                  body: formData,
+               });
+               const data = await resP.json();
+               if (resP.ok) {
+                  setMessage(`File uploaded to uploads successfully: ${data.filePath}`);
+               } else {
+                  setMessage(`Error: ${data.error}`);
+               }
+            } catch (error) {
+               setMessage('Upload failed');
+            }
 
             if (res.ok) {
                setMessage('');
                setFile(null);
                fetchMessages(conversationSid);
             }
+
          } else {
             alert('Error uploading file');
          }
@@ -84,7 +104,7 @@ export default function Chat() {
          console.log("NO FILEcvzxczxzxcvxcv")
          const res = await fetch('/api/chat/send', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                conversationSid,
                sender: session?.user?.name,
@@ -139,17 +159,17 @@ export default function Chat() {
                               >
                                  <strong>{msg.author === session?.user?.name ? 'You' : msg.author}:</strong>
                                  <p>{msg.body}</p>
-                                 {msg.media && (
+                                 {msg.files[0] && (
                                     <div className="mt-2">
-                                       {msg.media.contentType.startsWith('image/') ? (
-                                          <img src={msg.media.url} alt={msg.media.filename} className="max-w-xs" />
+                                       {msg.files[0].contentType.startsWith('haha') ? (
+                                          <img src={msg.files[0].url} alt={msg.files[0].filename} className="max-w-xs"/>
                                        ) : (
                                           <a
-                                             href={msg.media.url}
+                                             href={msg.files[0].url}
                                              download
                                              className="text-blue-200 hover:underline"
                                           >
-                                             {msg.media.filename}
+                                             {msg.files[0].filename}
                                           </a>
                                        )}
                                     </div>

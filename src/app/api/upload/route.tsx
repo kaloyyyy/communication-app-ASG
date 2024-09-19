@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       }
       const mediaSid = result.sid
       const mediaUrl = result.links.content; // The uploaded media URL
-      console.log(result)
+
 
       const reqRes = await fetch(
          `https://mcs.us1.twilio.com/v1/Services/${serviceSid}/Media/${mediaSid}`,
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
             }
          }
       )
-      console.log("reqres", reqRes)
+
       return NextResponse.json({
          success: true,
          url: mediaUrl,

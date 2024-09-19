@@ -1,41 +1,40 @@
-// app/dialer/page.js
 'use client';
 
 import { useState } from 'react';
+import { Device } from '@twilio/voice-sdk';
 
 export default function Dialer() {
    const [toNumber, setToNumber] = useState('');
+   const [device, setDevice] = useState(null);
    const [loading, setLoading] = useState(false);
-   const [callSid, setCallSid] = useState(null);
-   const [error, setError] = useState(null);
+   const [callStatus, setCallStatus] = useState('');
+
+   // Fetch a Twilio access token from your API
+   const getTwilioToken = async () => {
+      const response = await fetch('/api/token');
+      const data = await response.json();
+      return data.token;
+   };
+
+   const setupDevice = async () => {
+      if (!device) {
+         const token = await getTwilioToken();
+         const newDevice = new Device(token);
+         newDevice.on('ready', () => setCallStatus('Device ready to make calls'));
+         newDevice.on('error', (error) => setCallStatus(`Error: ${error.message}`));
+         setDevice(newDevice);
+      }
+   };
 
    const handleCall = async (e) => {
       e.preventDefault();
       setLoading(true);
-      setError(null);
+      await setupDevice();
 
-      try {
-         const response = await fetch('/api/call', {
-            method: 'POST',
-            headers: {
-               'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-               from: '+19513327251', // The Twilio number you're using
-               to: toNumber,
-            }),
-         });
-
-         const data = await response.json();
-
-         if (data.success) {
-            setCallSid(data.callSid);
-            setError(null);
-         } else {
-            setError(data.error);
-         }
-      } catch (err) {
-         setError('Failed to make the call. Please try again.');
+      if (device) {
+         const connection = device.connect({ params: { To: toNumber } });
+         connection.on('accept', () => setCallStatus('Call in progress...'));
+         connection.on('disconnect', () => setCallStatus('Call ended.'));
       }
 
       setLoading(false);
@@ -43,7 +42,7 @@ export default function Dialer() {
 
    return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-         <h1 className="text-2xl font-bold mb-6">Dialer</h1>
+         <h1 className="text-2xl font-bold mb-6">Web Dialer</h1>
 
          <form onSubmit={handleCall} className="bg-white p-6 rounded shadow-md w-full max-w-sm">
             <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
@@ -67,12 +66,8 @@ export default function Dialer() {
             </button>
          </form>
 
-         {callSid && (
-            <p className="mt-4 text-green-500">Call initiated! SID: {callSid}</p>
-         )}
-
-         {error && (
-            <p className="mt-4 text-red-500">Error: {error}</p>
+         {callStatus && (
+            <p className="mt-4 text-green-500">{callStatus}</p>
          )}
       </div>
    );

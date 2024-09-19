@@ -16,7 +16,7 @@ export async function POST(request) {
       console.log("send api media", media);
       console.log("send api mediassss", media.mediaResult.sid);
 
-      messageData.MediaSid = media.mediaResult.sid
+      //messageData.MediaSid = media.mediaResult.sid
    }
    console.log(messageData)
    try {
@@ -35,9 +35,9 @@ export async function POST(request) {
       }
 
       const sentMessage = await response.json();
-      console.log('Sent message:', sentMessage);
-      console.log('Sent rss:', response);
-      return NextResponse.json({ success: true, msg: sentMessage });
+      console.log('Sent message:', sentMessage.sid);
+      const chatSid = sentMessage.sid;
+      return NextResponse.json({success: true, chatSid: chatSid});
    } catch (error) {
       console.error('Error while sending message:', error);
       return NextResponse.json({ success: false, error: error.message });
